@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-
 //Itens da struct.
 //chave de identificação do nodo e ponteiros para os filhos
 struct node_{
@@ -47,6 +46,96 @@ void preorder (node *r){
 		preorder (r->right);
 	}
 }
+node * searchMin(node *r){
+	node *aux = r;
+	if (aux->left == NULL) return aux;
+	return searchMin(aux->left);
+}
+//void delete (node *r){}
+node * delete (node *r, int key){
+	node *aux = r;
+	node *anteiror, *menor;
+
+
+	if (aux == NULL) return NULL;
+	while (aux != NULL && aux->key != key )
+	{
+		printf("to no while\n");
+		if (key > aux->key)
+		{
+			printf("entrei no if\n");
+			anteiror = aux;
+			aux = aux->right;
+			printf("passei pelos ponteiros\n");
+			continue;
+		} 
+		anteiror = aux;
+		aux = aux->left;
+	}
+	printf("sai do while\n");
+	if(aux == NULL)
+	{
+		printf("Valor não encontrado\n");
+		return r;	
+	} 
+	// caso 1 : o nó não possui nodos.
+	if (aux->left == NULL && aux->right == NULL) 
+	{
+		//exclui o  nó;
+		if (aux->key > anteiror->key)
+		{
+			anteiror->right = NULL;
+			free(aux);
+			return r;//rever isso.
+		}
+		anteiror->left = NULL;
+		free(aux);
+		return r;
+	}
+	// caso 2 : o nó possui apenas uma sub-arvore.
+	if (aux->left == NULL)
+	{
+		//exclui o nó e promove outro
+		if (aux->key > anteiror->key)
+		{
+			anteiror->right = aux->right;
+			free(aux);
+			return r;//rever isso.
+		}
+		anteiror->left = aux->right;
+		free(aux);
+		return r;
+	}
+	if (aux->right == NULL)
+	{
+		//exclui o nó e promove outro
+		if (aux->key > anteiror->key)
+		{
+			anteiror->right = aux->left;
+			free(aux);
+			return r;//rever isso.
+		}
+		anteiror->left = aux->left;
+		free(aux);
+		return r;
+	}
+	//busca menor a direira.
+	menor = searchMin(aux->right);
+	if (aux->key > anteiror->key)
+	{
+		menor->left = aux->left;
+		menor->right = aux->right;
+		anteiror->right = menor;
+		free(aux);
+		return r;//rever isso.
+	}
+	menor->left = aux->left;
+	menor->right = aux->right;
+	anteiror->left = menor;
+	free(aux);
+	return r;//rever isso.
+	//reapontera.
+}
 
 //mostra todas as chaves da árvore
 
@@ -88,8 +177,10 @@ int main ( void ){
 	while(scanf("%d", &n)){
 		root = insert(root, n);
 	}
-	root = insert (root, 15);
-	root = insert (root, -4);
+	//root = insert (root, 15);
+	//root = insert (root, -4);
+	printf("vou para o delete\n");
+	root = delete(root,22);
 	printf ("Inoder\n");
 	inorder(root);
 	printf ("\n");
