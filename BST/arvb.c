@@ -4,7 +4,7 @@
 //chave de identificação do nodo e ponteiros para os filhos
 struct node_{
 	int key;  						
-	struct	node_ * left, * right;		
+	struct	node_ * left, * right, *raiz;		
 }typedef node;
 
 //busca por uma chave k na árvore com raiz r
@@ -46,95 +46,71 @@ void preorder (node *r){
 		preorder (r->right);
 	}
 }
-node * searchMin(node *r){
-	node *aux = r;
-	if (aux->left == NULL) return aux;
-	return searchMin(aux->left);
-}
-//void delete (node *r){}
-node * delete (node *r, int key){
-	node *aux = r;
-	node *anteiror, *menor;
-
-
-	if (aux == NULL) return NULL;
-	while (aux != NULL && aux->key != key )
+//Busca o menor.
+node * search_menor (node *r)
+{
+	node *aux;
+	aux = r;
+	while (aux->left != NULL)
 	{
-		printf("to no while\n");
-		if (key > aux->key)
-		{
-			printf("entrei no if\n");
-			anteiror = aux;
-			aux = aux->right;
-			printf("passei pelos ponteiros\n");
-			continue;
-		} 
-		anteiror = aux;
 		aux = aux->left;
 	}
-	printf("sai do while\n");
-	if(aux == NULL)
-	{
+	return aux;
+}
+
+//Deleta os nodos.
+node * delete (node *r, int key)
+{
+	node *y, *z = r;
+	
+	if (z == NULL){
+		printf("Árvore Vazia\n");
+		return NULL;	
+	} 
+	z = search(z,key);
+	if (z == NULL){
 		printf("Valor não encontrado\n");
 		return r;	
 	} 
-	// caso 1 : o nó não possui nodos.
-	if (aux->left == NULL && aux->right == NULL) 
+	//Caso 1 - Sem filhos.
+	if (z->left == NULL && z->right == NULL)
 	{
-		//exclui o  nó;
-		if (aux->key > anteiror->key)
-		{
-			anteiror->right = NULL;
-			free(aux);
-			return r;//rever isso.
+		if (z == z->raiz->left) {
+			z->raiz->left = NULL;
+			free(z);
+			return r;
+		} else {
+			z->raiz->right = NULL;
+			free(z);
+			return r;
 		}
-		anteiror->left = NULL;
-		free(aux);
-		return r;
-	}
-	// caso 2 : o nó possui apenas uma sub-arvore.
-	if (aux->left == NULL)
+	}	
+	//Caso 2 - Somente um filho.
+	if (z->left == NULL)
 	{
-		//exclui o nó e promove outro
-		if (aux->key > anteiror->key)
-		{
-			anteiror->right = aux->right;
-			free(aux);
-			return r;//rever isso.
-		}
-		anteiror->left = aux->right;
-		free(aux);
-		return r;
+		if (z->raiz != NULL){ 
+			z->right->raiz = z->raiz;//Re-aponta raiz do nodo a direita.
+			if(z == z->raiz->left) z->raiz->left = z->right;//Re-aponta o pai quando filho a esquerda.
+			else z->raiz->right = z->right;//Re-aponta o pai quando filho a direita.
+		} else z->right->raiz = NULL;// z->right;//Re-aponta raiz do nodo a direita, no caso de ser raiz deletada.
+		free(z);
+		return r; 
 	}
-	if (aux->right == NULL)
-	{
-		//exclui o nó e promove outro
-		if (aux->key > anteiror->key)
-		{
-			anteiror->right = aux->left;
-			free(aux);
-			return r;//rever isso.
-		}
-		anteiror->left = aux->left;
-		free(aux);
-		return r;
+	if (z->right == NULL) {
+		if (z->raiz != NULL){ 
+			z->left->raiz = z->raiz;//Re-aponta raiz do nodo a esquerda.
+			if(z == z->raiz->left) z->raiz->left = z->left;//Re-aponta o pai quando filho a esquerda.
+			else z->raiz->right = z->left;//Re-aponta o pai quando filho a direita.
+		}else z->left->raiz = z->raiz;//Re-aponta raiz do nodo a direita, no caso de ser raiz deletada.
+		free(z);
+		return r; 
 	}
-	//busca menor a direira.
-	menor = searchMin(aux->right);
-	if (aux->key > anteiror->key)
-	{
-		menor->left = aux->left;
-		menor->right = aux->right;
-		anteiror->right = menor;
-		free(aux);
-		return r;//rever isso.
-	}
-	menor->left = aux->left;
-	menor->right = aux->right;
-	anteiror->left = menor;
-	free(aux);
-	return r;//rever isso.
-	//reapontera.
+	//Caso 3.
+	y = search_menor(z->right);
+	z->raiz->left = y;
+	y->left = z->left;
+	free(z);
+	return r; 
 }
 
 //mostra todas as chaves da árvore
@@ -152,35 +128,30 @@ node  *insert (node *r, int key){
 	n->left = NULL;
 	n->right = NULL;
 	n->key = key;
+	n->raiz = NULL;
 	if(r == NULL) return n;		
 	if(key < it->key){
 		(it->left == NULL) ? it->left = n : insert(it->left,key);
 	}else{
 		(it->right == NULL) ? it->right = n : insert(it->right,key);
 	}
+	n->raiz = it;
 	return r;
 }	
-//remove o nodo da árvore com raiz r que possui chave igual a key
-//(lembra que tem que dar free no nodo)
-//void remove (node * r, int key){}
-
-
-
+//Testes.
 int main ( void ){
 
 	int n;
 	
 	node * root = NULL;
-	//for (n = 0; n < 10; n++){
-		//root = insert (root, n);
-	//}
+	printf("Digite números aleatorios para inserir na arvore\n");
 	while(scanf("%d", &n)){
 		root = insert(root, n);
 	}
-	//root = insert (root, 15);
-	//root = insert (root, -4);
-	printf("vou para o delete\n");
-	root = delete(root,22);
+	getchar();
+	printf("Digite um numero para ser deletado\n");
+	scanf("%d", &n);
+	root = delete(root,n);
 	printf ("Inoder\n");
 	inorder(root);
 	printf ("\n");
