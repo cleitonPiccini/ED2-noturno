@@ -57,25 +57,68 @@ node * search (node * r, int key){
 	return search (it->right, key); 	
 }
 //Rotação da arvore a esquerda.
-node * rLeft (node *r)
+node * rLeft (node *r, node *new)
 {
+	node *aux;
+	aux = new->right;
+	new->right = aux->left;
+	aux->parent->left = new;
+	aux->parent = new->parent;
+	if (new->parent == r){}
+
 	return r;
 }
 //Rotação da arvore a direita.
-node * rRight (node *r)
+node * rRight (node *r, node *new)
 {
 	return r;
 }
 //Arruma a inserção
 node * insert_fixup (node *r, node *new)
 {
+	node *aux;
 	while (new->parent->color == 1)
 	{
-	//Primeiro caso.
-		if (new->parent == new->left->parent){}
-	//Segundo caso.
-	
-	//Terceiro caso.
+		//Descobre se é a Esquerda.
+		if (new->parent == new->parent->parent->left)
+		{
+			aux = new->parent->parent->right;
+			//Primeiro caso.
+			if (aux->color == 1){
+				new->parent->color = 0;
+				aux->color = 0;
+				new->parent->parent->color = 1;
+				new = new->parent->parent;
+			//Segundo caso.
+			}else if (new == new->parent->left)
+			{
+				new = new->parent;
+				r = rLeft(r,new);
+			//Terceiro caso.
+				new->parent->color = 0;
+				new->parent->parent->color = 1;
+				r = rRight(r, new->parent->parent);
+			}
+		//Esquerda.
+		} else {
+			aux = new->parent->parent->right;
+			//Primeiro caso.
+			if (aux->color == 1){
+				new->parent->color = 0;
+				aux->color = 0;
+				new->parent->parent->color = 1;
+				new = new->parent->parent;
+			//Segundo caso.
+			}else if (new == new->parent->right)
+			{
+				new = new->parent;
+				r = rRight(r,new);
+			//Terceiro caso.
+				new->parent->color = 0;
+				new->parent->parent->color = 1;
+				r = rLeft(r, new->parent->parent);	
+			}
+		}
 	}
 	return r;
 }
