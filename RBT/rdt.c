@@ -8,11 +8,6 @@ typedef struct node_
 	int color;//0 - black, 1 - red.
 	struct node_ *left, *right, *parent;
 }node;
-
-typedef struct tree
-{
-	struct node_ *root;
-}tree;
 //Inicia um nodo.
 node * new_node (int key)
 {
@@ -22,7 +17,7 @@ node * new_node (int key)
 	
 	if (!new)
 	{
-		printf ("falha de alocação de memória\n");
+		printf ("Falha de alocação de memória\n");
 		return NULL;
 	}
 	new->left = NULL;
@@ -40,7 +35,7 @@ node * nill ()
 	
 	if (!new)
 	{
-		printf ("falha de alocação de memória\n");
+		printf ("Falha de alocação de memória\n");
 		return NULL;
 	}
 
@@ -98,19 +93,17 @@ void preorder (node *raiz, node *r){
 node * rLeft (node *r, node *new)
 {
 	node *aux;
+
 	aux = new->right;
 	new->right = aux->left;
 	aux->parent = new->parent;
+	//Se rotação for substituir a raiz.	
+	if (new->parent == r->parent) r = aux;
+	//Se for esquerda.
+	else if (new == new->parent->left) new->parent->left = aux;
+	//Se for direita.
+	else new->parent->right = aux;
 	
-	if (new->parent == r->parent)
-	{
-		r = aux;
-	} else if (new == new->left->parent) //Se for esquerda.
-	{
-		new->parent->left = aux;
-	}else{
-		new->parent->right = aux;
-	}
 	aux->left = new;
 	new->parent = aux;
 	return r;
@@ -119,19 +112,17 @@ node * rLeft (node *r, node *new)
 node * rRight (node *r, node *new)
 {
 	node *aux;
+	
 	aux = new->left;
 	new->left = aux->right;
 	aux->parent = new->parent;
-
-	if (new->parent == r->parent)
-	{
-		r = aux;
-	} else if (new == new->left->parent) //Se for esquerda.
-	{
-		new->parent->left = aux;
-	}else{
-		new->parent->right = aux;
-	}
+	//Se rotação for substituir a raiz.
+	if (new->parent == r->parent) r = aux;
+	//Se for esquerda.
+	else if (new == new->parent->left) new->parent->left = aux;
+	//Se for direita.
+	else new->parent->right = aux;
+	
 	aux->right = new;
 	new->parent = aux;
 	return r;
@@ -140,55 +131,60 @@ node * rRight (node *r, node *new)
 node * insert_fixup (node *r, node *new)
 {
 	node *aux;
-	while (new->parent->color)
+	while (new->parent->color == 1)
 	{
-		//Descobre se é a Esquerda.
+		/*Descobre se é a Esquerda.
+		Trata os casos a esquerda.*/
 		if (new->parent == new->parent->parent->left)
 		{
 			aux = new->parent->parent->right;
-			//Primeiro caso.
+			//Primeiro caso.(Troca as cores do pai, tio e avo)
 			if (aux->color == 1){
 				new->parent->color = 0;
 				aux->color = 0;
 				new->parent->parent->color = 1;
 				new = new->parent->parent;
 			//Segundo caso.
+			/*Se apenas as troca de cores n for suficiente.
+			Identifica se é nodo a direita.
+			Caso seja rotaciona a esquerda tbm.*/
 			}else{ 
-				if (new == new->left->parent)
+				if (new == new->parent->right)
 				{
 					new = new->parent;
 					r = rLeft(r,new);
 				}
-			//Terceiro caso.
+			//Terceiro caso.(rotação a direita)
 				new->parent->color = 0;
 				new->parent->parent->color = 1;
 				r = rRight(r, new->parent->parent);
 			}
-		//Direita.
+		//Trata os casos a direita.
 		} else {
 			aux = new->parent->parent->left;
-
-			//Primeiro caso.
+			//Primeiro caso.(Troca as cores do pai, tio e avo)
 			if (aux->color == 1){
 				new->parent->color = 0;
 				aux->color = 0;
 				new->parent->parent->color = 1;
 				new = new->parent->parent;
 			//Segundo caso.
+			/*Se apenas as troca de cores n for suficiente.
+			Identifica se é nodo a esquerda.
+			Caso seja rotaciona a direita tbm.*/
 			}else{ 
-				if (new == new->right->parent)
+				if (new == new->parent->left)
 				{
 					new = new->parent;
 					r = rRight(r,new);
 				}
-			//Terceiro caso.
+			//Terceiro caso.(rotação a esquerda)
 				new->parent->color = 0;
 				new->parent->parent->color = 1;
 				r = rLeft(r, new->parent->parent);	
 			}
 		}
 	}
-
 	r->color = 0;
 	return r;
 }
@@ -211,7 +207,6 @@ node * insert (node *r, int key)
 	aux = r;
 	while(aux != r->parent)
 	{
-		printf("oi for do insert\n");
 		pai = aux;
 		if(key < aux->key){
 			if (aux->left == r->parent)
@@ -228,10 +223,9 @@ node * insert (node *r, int key)
 		}
 	}
 	new->parent = pai;
-	printf("oi vou para o fix\n");
-	return insert_fixup(r, new);
+	r = insert_fixup(r, new);
+	return r;
 }
-
 //Testes
 int main ()
 {
